@@ -1,0 +1,8 @@
+*.jpg filter=lfs diff=lfs merge=lfs -text
+*.png filter=lfs diff=lfs merge=lfs -text
+
+# git lfs install -- needs to be done once per account (probably done)
+
+# git lfs track "*.psd"
+
+# git add .gitattributes
