@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Simple Image Viewer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    /* Minimal styling */
+    html, body { margin: 0; height: 100%; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: #0b0f17; color: #e5e7eb; }
+    .wrap { min-height: 100%; display: grid; place-items: center; padding: 16px; }
+    .viewer { width: min(900px, 100%); text-align: center; }
+    .stage { display: grid; place-items: center; background: #0f172a; border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 12px; min-height: 320px; }
+    img { max-width: 100%; max-height: 70vh; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.35); transition: opacity .18s ease; }
+    .controls { margin-top: 12px; display: flex; gap: 8px; justify-content: center; }
+    button { background: #1f2937; color: #fff; border: 1px solid rgba(255,255,255,.15); padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+    button:hover { background: #111827; }
+    .hint { margin-top: 10px; font-size: .9rem; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="viewer">
+      <div class="stage">
+        <img id="img" src="" alt="Selected image" decoding="async" />
+      </div>
+      <div class="controls">
+        <button id="prev" type="button">← Previous</button>
+        <button id="next" type="button">Next →</button>
+      </div>
+      <p class="hint">Open with a default image via <code>#a</code>, <code>#b</code>, <code>#c</code>, <code>#d</code>, or <code>#e</code> &nbsp; e.g. <code>index.html#b</code></p>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      // Configure the image files for keys a–e
+      const images = {
+        1: "img/1.png",
+        2: "img/2.png",
+        3: "img/3.png",
+        4: "img/4.png",
+        5: "img/5.png",
+      };
+      const order = ["1", "2", "3", "4", "5"];
+
+      const imgEl = document.getElementById("img");
+      const prevBtn = document.getElementById("prev");
+      const nextBtn = document.getElementById("next");
+
+      function getKeyFromHash() {
+        const key = (location.hash || "").replace(/^#/, "").toLowerCase();
+        return order.includes(key) ? key : "1";
+      }
+
+      let currentKey = getKeyFromHash();
+
+      function show(key) {
+        const src = images[key];
+        const pre = new Image();
+        imgEl.style.opacity = "0";
+        pre.onload = () => {
+          imgEl.src = src;
+          imgEl.alt = `Image ${key.toUpperCase()}`;
+          requestAnimationFrame(() => (imgEl.style.opacity = "1"));
+        };
+        pre.onerror = () => {
+          imgEl.removeAttribute("src");
+          imgEl.alt = `Image ${key.toUpperCase()} not found`;
+        };
+        pre.src = src;
+
+        // Keep hash in sync without scrolling
+        if (location.hash !== "#" + key) {
+          history.replaceState(null, "", "#" + key);
+        }
+      }
+
+      function next() {
+        const i = order.indexOf(currentKey);
+        currentKey = order[(i + 1) % order.length];
+        show(currentKey);
+      }
+
+      function prev() {
+        const i = order.indexOf(currentKey);
+        currentKey = order[(i - 1 + order.length) % order.length];
+        show(currentKey);
+      }
+
+      // Sync when user modifies hash manually or from a link
+      window.addEventListener("hashchange", () => {
+        currentKey = getKeyFromHash();
+        show(currentKey);
+      });
+
+      // Keyboard arrows for convenience
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight") next();
+        else if (e.key === "ArrowLeft") prev();
+      });
+
+      prevBtn.addEventListener("click", prev);
+      nextBtn.addEventListener("click", next);
+
+      // Initialize
+      show(currentKey);
+    })();
+  </script>
+</body>
+</html>
